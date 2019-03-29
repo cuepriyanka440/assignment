@@ -1,18 +1,13 @@
 import React, { Component } from 'react';
-
+import { BrowserRouter } from 'react-router-dom';
 import './App.css';
 import './bootstrap.min.css';
-import Home from './frontend/Home';
-import About from './frontend/About';
-import Contact from './frontend/Contact';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
-
 
 class App extends Component {
   render() {
     return (
       <div className="App">
-        {/* <header id="header" className="fixed-top">
+        <header id="header" className="fixed-top">
           <div className="container">
             <div className="logo float-left">
              <button className="btn btn-info">Admin Login</button>
@@ -47,37 +42,10 @@ class App extends Component {
             </nav>
             
           </div>
-         </header> */}
-
-         <Router>
-        <div>
-          <h2>React</h2>
-          <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <ul className="navbar-nav mr-auto">
-            <button className="btn btn-info float-right">Admin Login</button>
-            <li><Link to={'/'} className="nav-link"> Home </Link></li>
-            <li><Link to={'/contact'} className="nav-link">Contact</Link></li>
-            <li><Link to={'/about'} className="nav-link">About</Link></li>
-          </ul>
-          </nav>
-          <hr />
-          <Switch>
-              <Route exact path='/' component={Home} />
-              <Route path='/contact' component={Contact} />
-              <Route path='/about' component={About} />
-              <Route component={Page404} />
-          </Switch>
-        </div>
-      </Router>
+         </header>
       </div>
     );
   }
 }
-
-const Page404 = ({ location }) => (
-  <div>
-     <h2>No match found for <code>{location.pathname}</code></h2>
-  </div>
-);
 
 export default App;
