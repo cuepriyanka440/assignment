@@ -5,7 +5,10 @@ import './bootstrap.min.css';
 import Home from './frontend/Home';
 import About from './frontend/About';
 import Contact from './frontend/Contact';
+import AdminLogin from './Admin/AdminLogin';
+import Pages from './Pages/Pages';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { withAuthentication } from './Session';
 
 
 class App extends Component {
@@ -54,7 +57,7 @@ class App extends Component {
           <h2>React</h2>
           <nav className="navbar navbar-expand-lg navbar-light bg-light">
           <ul className="navbar-nav mr-auto">
-            <button className="btn btn-info float-right">Admin Login</button>
+            <button className="btn-info float-right"><Link to={'/login'} className="nav-link">Admin Login</Link></button>
             <li><Link to={'/'} className="nav-link"> Home </Link></li>
             <li><Link to={'/contact'} className="nav-link">Contact</Link></li>
             <li><Link to={'/about'} className="nav-link">About</Link></li>
@@ -65,6 +68,8 @@ class App extends Component {
               <Route exact path='/' component={Home} />
               <Route path='/contact' component={Contact} />
               <Route path='/about' component={About} />
+              <Route path='/login' component={AdminLogin} />
+              <Route path='/pages' component={Pages} />
               <Route component={Page404} />
           </Switch>
         </div>
@@ -80,4 +85,4 @@ const Page404 = ({ location }) => (
   </div>
 );
 
-export default App;
+export default withAuthentication(App);
