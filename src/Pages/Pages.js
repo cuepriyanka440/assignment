@@ -6,22 +6,42 @@ import { withFirebase } from '../Firebase';
 import MessageList from './MessageList';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { withAuthorization, withEmailVerification } from '../Session';
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+
+// Require Editor JS files.
+import 'froala-editor/js/froala_editor.pkgd.min.js';
+
+// Require Editor CSS files.
+import 'froala-editor/css/froala_style.min.css';
+import 'froala-editor/css/froala_editor.pkgd.min.css';
+
+// Require Font Awesome.
+import 'font-awesome/css/font-awesome.css';
+
+import FroalaEditor from 'react-froala-wysiwyg';
+
+import * as $ from 'jquery';
+window["$"] = $;
+window["jQuery"] = $;
+var moment = require('moment');
+
+
 class Pages extends Component {
   constructor(props) {
     super(props);
+    
+    this.onRemovePage = this.onRemovePage.bind(this);
+    this.onEditPage = this.onEditPage.bind(this);
 
     this.state = {
-      title: '',
-      description:'',
-      category:'',
       loading: false,
     };
   }
 
   componentDidMount() {
-    // if (!this.props.pages.length) {
-    //   this.setState({ loading: true });
-    // }
+    if (!this.props.messages.length) {
+      this.setState({ loading: true });
+    }
 
     this.onListenForPages();
   }
@@ -48,140 +68,62 @@ class Pages extends Component {
     this.props.firebase.messages().off();
   }
 
-  onChangeText = event => {
-    this.setState({ title: event.target.value });
-  };
-
-  onChangeDescription = event => {
-    this.setState({ description: event.target.value });
-  }
-
-  onChangeCategory = event => {
-    this.setState({ category: event.target.value });
-  }
-
-  onChangeStatus = event => {
-    this.setState({ status: event.target.value });
-  }
-
-  onCreateMessage = (event, authUser) => {
-console.log(this.props);
-    event.preventDefault();
-    this.props.firebase.messages().push({
-      title: this.state.title,
-      userId: authUser.uid,
-      author: authUser.username,
-      description: this.state.description,
-      category: this.state.category,
-      status: this.state.status,
-      createdAt: this.props.firebase.serverValue.TIMESTAMP,
-      updatedAt: this.props.firebase.serverValue.TIMESTAMP,
-    });
-
-    this.setState({ title: '', description:'', status:'', category: ''});
-
-    
-  };
-
-  onEditPage = (message, title, description, category, status) => {
-    this.props.firebase.message(message.uid).set({
-      ...message,
-      title,
-      description,
-      category,
-      status,
-      editedAt: this.props.firebase.serverValue.TIMESTAMP,
-    });
-  };
-
-  onRemoveMessage = uid => {
+  onRemovePage(uid) {
     this.props.firebase.message(uid).remove();
   };
 
-  onNextPage = () => {
-    this.props.onSetMessagesLimit(this.props.limit + 5);
+  onEditPage(uid) {
+    console.log(this.props.firebase.message(uid));
   };
 
   render() {
     const { users, messages } = this.props;
-    const { title, description, loading } = this.state;
-
+    const { loading } = this.state;
+    const style = {
+      'padding':'15px'
+    }
     return (
       <div className="container">
       <div className="row">
-      <div className="col-md-6">
-      <div className="form-group">
-
-        <form
-          onSubmit={event =>
-            this.onCreateMessage(event, this.props.authUser)
-          }
-        >
-          <input
-            type="text"
-            value={title}
-            placeholder="Title"
-            className="form-control"
-            onChange={this.onChangeText}
-          />
-          <br></br>
-          <textarea
-            type="text"
-            value={description}
-            placeholder="Description"
-            className="form-control"
-            onChange={this.onChangeDescription}
-          />
-          <br></br>
-  
-          <select value={this.state.category} onChange={this.onChangeCategory} className="form-control">
-            <option>Category</option>
-            <option value="Blockchain" >Blockchain</option>
-            <option value="IoT">IoT</option>
-            <option value="Game tech">Game tech</option>
-            <option value="AI">AI</option>
-            <option value="Robotics">Robotics</option>
-          </select>
-          <br></br>
-          <div className="form-check">
-          <input type="radio" className="form-check-input" name="status" 
-                                   value='draft'
-                                   checked={this.state.status === 'draft'} 
-                                   onChange={this.onChangeStatus} />
-                                   <label className="form-check-label" htmlFor="exampleRadios1">
-                                   Draft
-          </label>
-          </div>
-          <div className="form-check">
-          <input type="radio" className="form-check-input" name="status" 
-                                   value='published'
-                                   checked={this.state.status === 'published'} 
-                                   onChange={this.onChangeStatus} />
-                                   <label className="form-check-label" htmlFor="exampleRadios1">
-                                   Published
-          </label>
-          </div>
-          <br></br>
-          <button type="submit" className="btn btn-primary">Add Page</button>
-        </form>
+      <div style={style}>
+        <span><Link to={'/addPage'} className="btn btn-primary">Add Page</Link></span>
       </div>
-      </div>
-      <div className="col-md-6">
+      <div className="col-md-12">
+      
       {loading && <div>Loading ...</div>}
-     
-        {messages && (
-          <MessageList
-            messages={messages.map(message => ({
-              ...message,
-              user: users
-                ? users[message.userId]
-                : { userId: message.userId },
-            }))}
-            onEditMessage={this.onEditMessage}
-            onRemoveMessage={this.onRemoveMessage}
-          />
-        )}
-
+        <table className="table">
+            <thead className="thead-dark">
+              <tr>
+                <th>Page</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Updated At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            { 
+              messages.map((message) => {
+                return (
+                <tr key={message.uid}>
+                  <td>{message.title}</td>
+                  <td>{message.description}</td>
+                  <td>{message.status}</td>
+                  <td>{moment(message.updatedAt).format('MM/DD/YYYY')}</td>
+                  <td> 
+                    <button onClick={this.onEditPage(message.uid)}>
+                      Edit
+                  </button>|
+                  <button  onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
+                      Delete
+                  </button>
+                  </td>
+                </tr> 
+                )})
+            }
+            </tbody>
+         </table>
+            
         {!messages && <div>There are no messages ...</div>}
       </div>
       </div>
@@ -191,6 +133,7 @@ console.log(this.props);
 }
 
 const mapStateToProps = state => ({
+  
   authUser: state.sessionState.authUser,
   messages: Object.keys(state.messageState.messages || {}).map(
     key => ({

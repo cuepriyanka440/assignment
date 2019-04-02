@@ -3,12 +3,12 @@ import 'firebase/auth';
 import 'firebase/database';
 
 const config = {
-  apiKey: 'AIzaSyBpsFOTlgVN0DkSE0AQX0_SR9wvZhfxkiA',
+  apiKey: 'AIzaSyCtM6q-IeJraO02OvsBYC_PpJ1OwIjNuqU',
   authDomain: 'react-firebase-1af4e.firebaseapp.com',
-  databaseURL: 'https://newassignment-6fb8e.firebaseio.com',
-  projectId: 'newassignment-6fb8e',
-  storageBucket: 'newassignment-6fb8e.appspot.com',
-  messagingSenderId: 767985162051,
+  databaseURL: 'https://react-assignment-1af4e.firebaseio.com',
+  projectId: 'react-assignment-1af4e',
+  storageBucket: 'react-firebase-1af4e.appspot.com',
+  messagingSenderId: 225590736580,
 };
 
 class Firebase {
@@ -45,9 +45,9 @@ class Firebase {
             const dbUser = snapshot.val();
 
             // default empty roles
-            if (!dbUser.roles) {
-              dbUser.roles = [];
-            }
+            // if (!dbUser.roles) {
+            //   dbUser.roles = [];
+            // }
 
             // merge auth and db user
             authUser = {
