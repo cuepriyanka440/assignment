@@ -78,14 +78,24 @@ class EditPage extends Component {
     this.props.history.push('/pages');
   };
 
-  onEditPage = (message, title, description, status) => {
-    this.props.firebase.message(message.uid).set({
-      ...message,
+  onSaveEditText = () => {
+    this.props.onEditPage(
+      this.state.title,
+      this.state.description,
+      this.state.status,
+      this.state.pageId
+    );
+  };
+
+  onEditPage = (title, description, status, pageId) => {
+
+    this.props.firebase.message(pageId).set({
       title,
       description,
       status,
-      editedAt: this.props.firebase.serverValue.TIMESTAMP,
+      updatedAt: moment().format(),
     });
+    this.props.history.push('/pages');
   };
 
   onRemoveMessage = uid => {
@@ -121,7 +131,7 @@ class EditPage extends Component {
             <div className="form-group">
               <form
                 onSubmit={event =>
-                  this.onEditPage(event, this.props.authUser)
+                  this.onSaveEditText
                 }
               >
                 <input
