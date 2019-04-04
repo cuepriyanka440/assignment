@@ -3,9 +3,8 @@ import { connect } from 'react-redux';
 import { compose } from 'recompose';
 
 import { withFirebase } from '../Firebase';
-import MessageList from './MessageList';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { withAuthorization, withEmailVerification } from '../Session';
+import { withAuthentication } from '../Session';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 
 // Require Editor JS files.
@@ -19,6 +18,7 @@ import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'font-awesome/css/font-awesome.css';
 
 import FroalaEditor from 'react-froala-wysiwyg';
+import CommonCheck from '../CommonCheck';
 
 import * as $ from 'jquery';
 window["$"] = $;
@@ -77,6 +77,9 @@ class Pages extends Component {
   };
 
   render() {
+    if(!this.props.authUser){
+     return <CommonCheck/>
+    }
     const { users, messages } = this.props;
     const { loading } = this.state;
     const style = {
@@ -111,12 +114,10 @@ class Pages extends Component {
                   <td>{message.status}</td>
                   <td>{moment(message.updatedAt).format('MM/DD/YYYY')}</td>
                   <td> 
-                    <button onClick={this.onEditPage(message.uid)}>
-                      Edit
-                  </button>|
-                  <button  onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
-                      Delete
-                  </button>
+                    <Link to={'editPage/' + message.title} className="nav-link"><i class="fa fa-edit" aria-hidden="true"></i></Link>
+                    <a  onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
+                      <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
                   </td>
                 </tr> 
                 )})
@@ -153,6 +154,7 @@ const mapDispatchToProps = dispatch => ({
 
 export default compose(
   withFirebase,
+  withAuthentication,
   connect(
     mapStateToProps,
     mapDispatchToProps,

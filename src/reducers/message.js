@@ -1,25 +1,35 @@
 const INITIAL_STATE = {
   messages: null,
-  limit: 5,
+  message:null,
+  menus:null,
 };
 
 const applySetMessages = (state, action) => ({
   ...state,
   messages: action.messages,
 });
-
-const applySetMessagesLimit = (state, action) => ({
+const applySetMessage = (state, action) => ({
   ...state,
-  limit: action.limit,
+  message: action.message,
 });
+
+const applySetMenus = (state, action) => ({
+  ...state,
+  menus: action.menus,
+});
+
 
 function messageReducer(state = INITIAL_STATE, action) {
   switch (action.type) {
     case 'MESSAGES_SET': {
       return applySetMessages(state, action);
     }
-    case 'MESSAGES_LIMIT_SET': {
-      return applySetMessagesLimit(state, action);
+    case 'MESSAGE_SET': {
+      return applySetMessage(state, action);
+    }
+    case 'MENUS_SET': {
+      console.log(action)
+      return applySetMenus(state, action);
     }
     default:
       return state;

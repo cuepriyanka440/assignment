@@ -5,7 +5,7 @@ import { compose } from 'recompose';
 import { withFirebase } from '../Firebase';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { withAuthorization, withEmailVerification } from '../Session';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Link } from 'react-router-dom';
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -24,11 +24,31 @@ import * as $ from 'jquery';
 window["$"] = $;
 window["jQuery"] = $;
 var moment = require('moment');
-class Pages extends Component {
+class EditPage extends Component {
   constructor(props) {
     super(props);
     this.handleModelChange = this.handleModelChange.bind(this);
+    this.state = {
+      title: '',
+      description: '',
+      loading: false,
+      pageId:null,
+      
+    };
   }
+
+  componentDidMount() {
+    let pageId = this.props.match.params.id;
+    this.props.firebase
+      .messages()
+      .orderByChild('title')
+      .equalTo(pageId)
+      .on('value', snapshot => {
+        this.props.onSetMessage(snapshot.val());
+      });
+      this.setState({pageId:pageId });
+  }
+
 
   componentWillUnmount() {
     this.props.firebase.messages().off();
@@ -37,10 +57,6 @@ class Pages extends Component {
   onChangeText = event => {
     this.setState({ title: event.target.value });
   };
-
-  onChangeCategory = event => {
-    this.setState({ category: event.target.value });
-  }
 
   onChangeStatus = event => {
     this.setState({ status: event.target.value });
@@ -62,7 +78,7 @@ class Pages extends Component {
     this.props.history.push('/pages');
   };
 
-  onEditPage = (message, title, description, category, status) => {
+  onEditPage = (message, title, description, status) => {
     this.props.firebase.message(message.uid).set({
       ...message,
       title,
@@ -76,10 +92,6 @@ class Pages extends Component {
     this.props.firebase.message(uid).remove();
   };
 
-  onNextPage = () => {
-    this.props.onSetMessagesLimit(this.props.limit + 5);
-  };
-
   handleModelChange(model) {
     this.setState({
       description: model
@@ -89,12 +101,16 @@ class Pages extends Component {
   render() {
     if(!this.props.authUser){
       return <CommonCheck/>
-    }
+     }
     const { users, messages } = this.props;
+    const { title, description, loading, pageId } = this.state;
     const style = {
       'padding': '15px'
     }
-   
+    let message = this.props.message[0];
+    if(!message) {
+      return null
+    } 
     return (
       <div className="container">
         <div className="row">
@@ -103,14 +119,14 @@ class Pages extends Component {
           </div>
           <div className="col-md-6">
             <div className="form-group">
-
               <form
                 onSubmit={event =>
-                  this.onCreateMessage(event, this.props.authUser)
+                  this.onEditPage(event, this.props.authUser)
                 }
               >
                 <input
                   type="text"
+                  value={message.title}
                   placeholder="Title"
                   className="form-control"
                   required
@@ -119,13 +135,14 @@ class Pages extends Component {
                 <br></br>
 
                 <FroalaEditor
-                  model={null}
+                  model={message.description}
                   onModelChange={this.handleModelChange}
                 />
                 <br></br>
                 <div className="form-check">
                   <input type="radio" className="form-check-input" name="status"
                     value='draft'
+                    checked={message.status === 'draft'}
                     onChange={this.onChangeStatus} />
                   <label className="form-check-label" htmlFor="exampleRadios1">
                     Draft
@@ -134,13 +151,14 @@ class Pages extends Component {
                 <div className="form-check">
                   <input type="radio" className="form-check-input" name="status"
                     value='published'
+                    checked={message.status === 'published'}
                     onChange={this.onChangeStatus} />
                   <label className="form-check-label" htmlFor="exampleRadios1">
                     Published
           </label>
                 </div>
                 <br></br>
-                <button type="submit" className="btn btn-primary">Add Page</button>
+                <button type="submit" className="btn btn-primary">Update Page</button>
               </form>
             </div>
           </div>
@@ -162,7 +180,13 @@ const mapStateToProps = state => ({
     }),
   ),
   limit: state.messageState.limit,
-  message: state.messageState.message
+  message: Object.keys(state.messageState.message || {}).map(
+    key => ({
+      ...state.messageState.message[key],
+      uid: key,
+    }),
+  ),
+  
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -178,4 +202,4 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
-)(Pages);
+)(EditPage);

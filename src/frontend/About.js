@@ -3,28 +3,51 @@ import { withAuthentication } from '../Session';
 import { withFirebase } from '../Firebase';
 import { compose } from 'recompose';
 import { connect } from 'react-redux';
+import parse from 'html-react-parser';
 
 class About extends Component {
 
+  constructor(){
+    super();
+    this.state ={
+      pageId:null
+    }
+  }
   componentDidMount() {
-    let pageId = this.props.match.params.id;
+    let PageId = this.props.match.params.id;
+    this.setState({pageId:PageId});
+    this.onListenForPages(PageId);
+  }
+  onListenForPages = (pageId) => {
     this.props.firebase
       .messages()
       .orderByChild('title')
       .equalTo(pageId)
       .on('value', snapshot => {
-        this.props.onSetMessages(snapshot.val());
+        console.log(snapshot.val());
+        this.props.onSetMessage(snapshot.val());
       });
-      
+  };
+
+  componentDidUpdate(props) {
+    let PageId = this.props.match.params.id;
+    if(PageId != this.state.pageId ) {
+      this.setState({pageId:PageId});
+      this.onListenForPages(PageId);
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.firebase.message().off();
   }
 
   render() {
-    const { messages } = this.props;
+    const { message } = this.props;
     return (
         <div>
-          {messages.map((message) => {
+          {message.map((msg) => {
                 return (
-                  message.title
+                  parse(msg.description)
                 )})
           }
         </div>
@@ -36,20 +59,17 @@ class About extends Component {
 const mapStateToProps = state => ({
   
   authUser: state.sessionState.authUser,
-  messages: Object.keys(state.messageState.messages || {}).map(
+  message: Object.keys(state.messageState.message || {}).map(
     key => ({
-      ...state.messageState.messages[key],
+      ...state.messageState.message[key],
       uid: key,
     }),
   ),
-  limit: state.messageState.limit,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetMessages: messages =>
-    dispatch({ type: 'MESSAGES_SET', messages }),
-  onSetMessagesLimit: limit =>
-    dispatch({ type: 'MESSAGES_LIMIT_SET', limit }),
+  onSetMessage: message =>
+    dispatch({ type: 'MESSAGE_SET', message }),
 });
 
 // const About = ({ match }) => (
