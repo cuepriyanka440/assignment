@@ -22,6 +22,7 @@ import CommonCheck from '../CommonCheck';
 import parse from 'html-react-parser';
 import Truncate from 'react-truncate';
 
+import _ from 'lodash';
 import * as $ from 'jquery';
 window["$"] = $;
 window["jQuery"] = $;
@@ -32,10 +33,12 @@ class Pages extends Component {
     super(props);
     
     this.onRemovePage = this.onRemovePage.bind(this);
-    this.onEditPage = this.onEditPage.bind(this);
-
+    this.sortby = this.sortby.bind(this);
     this.state = {
       loading: false,
+      messages:null,
+      sortOrder:'asc',
+      filterText:null
     };
   }
 
@@ -45,12 +48,6 @@ class Pages extends Component {
     }
 
     this.onListenForPages();
-  }
-
-  componentDidUpdate(props) {
-    if (props.limit !== this.props.limit) {
-      this.onListenForPages();
-    }
   }
 
   onListenForPages = () => {
@@ -71,26 +68,64 @@ class Pages extends Component {
     this.props.firebase.message(uid).remove();
   };
 
-  onEditPage(uid) {
-    console.log(this.props.firebase.message(uid));
-  };
+  sortby(sortKey){
+    
+    let sortedObject = _.orderBy(this.props.messages, sortKey, this.state.sortOrder)
+    this.props.onSetMessages(sortedObject);
+    if( this.state.sortOrder == 'asc') {
+      this.setState({ sortOrder: 'desc' });
+    } else {
+      this.setState({ sortOrder: 'asc' });
+    }
+  }
+
+  getPaginatedItems(items, page, pageSize) {
+    var pg = page || 1,
+      pgSize = pageSize || 100,
+      offset = (pg - 1) * pgSize,
+      pagedItems = _.drop(items, offset).slice(0, pgSize);
+    return {
+      page: pg,
+      pageSize: pgSize,
+      total: items.length,
+      total_pages: Math.ceil(items.length / pgSize),
+      data: pagedItems
+    };
+  }
+  onChangeFilter = (event) => {
+    this.setState({filterText:event.target.value});
+  }
+  onSeach = () => {
+    this.setState({messages:this.props.messages });
+    if(  this.state.filterText== '') {
+      var sortedObject = this.state.messages;
+    } else {
+      var sortedObject = _.filter(this.props.messages, { 'title': this.state.filterText });
+    }
+    this.props.onSetMessages(sortedObject);
+  }
 
   render() {
     if(!this.props.authUser){
      return <CommonCheck/>
     }
     const { users, messages } = this.props;
-    const { loading } = this.state;
+    const { loading,filterText } = this.state;
     const style = {
       'padding':'15px'
     }
-    console.log(this.props);
+    const marginStyle = {
+      'margin' : '10px'
+    }
+    
     return (
       <div className="container">
        <div className={this.props.infoMessage ? 'alert alert-success' : ''}>{this.props.infoMessage}</div>
       <div className="row">
       <div style={style}>
         <span><Link to={'/addPage'} className="btn btn-primary">Add Page</Link></span>
+        <input type="text" style={marginStyle} onChange={this.onChangeFilter} value={filterText}></input>
+        <button onClick={this.onSeach}>Search</button>
       </div>
      
       <div className="col-md-12">
@@ -99,10 +134,11 @@ class Pages extends Component {
         <table className="table">
             <thead className="thead-dark">
               <tr>
-                <th>Page</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Updated At</th>
+                <th><a onClick={(e) => { this.sortby('title') } }>
+                        Page</a></th>
+                <th><a onClick={(e) => { this.sortby('description') } }>Description</a></th>
+                <th><a onClick={(e) => { this.sortby('status') } }>Status</a></th>
+                <th><a onClick={(e) => { this.sortby('updatedAt') } }>Updated At</a></th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -121,7 +157,7 @@ class Pages extends Component {
                   <td>{moment(message.updatedAt).format('MM/DD/YYYY')}</td>
                   <td> 
                     <Link to={'editPage/' + message.title} className="nav-link"><i class="fa fa-edit" aria-hidden="true"></i></Link>
-                    <a  onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
+                    <a onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
                       <i class="fa fa-trash" aria-hidden="true"></i>
                     </a>
                     <Link to={'/preview/'+message.title} className="nav-link"> Preview </Link>
@@ -132,7 +168,7 @@ class Pages extends Component {
             </tbody>
          </table>
             
-        {!messages && <div>There are no messages ...</div>}
+        {!messages && <div>There are no pages ...</div>}
       </div>
       </div>
       </div>
