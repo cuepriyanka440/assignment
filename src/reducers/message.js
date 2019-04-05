@@ -2,6 +2,7 @@ const INITIAL_STATE = {
   messages: null,
   message:null,
   menus:null,
+  infoMessage:null
 };
 
 const applySetMessages = (state, action) => ({
@@ -18,6 +19,11 @@ const applySetMenus = (state, action) => ({
   menus: action.menus,
 });
 
+const applySetInfoMessage = (state, action) => ({
+  ...state,
+  infoMessage: action.infoMessage,
+});
+
 
 function messageReducer(state = INITIAL_STATE, action) {
   switch (action.type) {
@@ -28,8 +34,10 @@ function messageReducer(state = INITIAL_STATE, action) {
       return applySetMessage(state, action);
     }
     case 'MENUS_SET': {
-      console.log(action)
       return applySetMenus(state, action);
+    }
+    case 'INFOMESSAGE_SET': {
+      return applySetInfoMessage(state, action);
     }
     default:
       return state;

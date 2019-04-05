@@ -32,8 +32,8 @@ class EditPage extends Component {
       title: '',
       description: '',
       loading: false,
+      status:null,
       pageId:null,
-      
     };
   }
 
@@ -45,10 +45,24 @@ class EditPage extends Component {
       .equalTo(pageId)
       .on('value', snapshot => {
         this.props.onSetMessage(snapshot.val());
+        let message = snapshot.val();
+        let message1 =  Object.keys(message || {}).map(
+          key => ({
+            ...message[key],
+            uid: key,
+          }),
+        )
+        let message2 = message1[0];
+        if(!message2) {
+          return null
+        }
+        this.setState({title:message2.title });  
+        this.setState({description:message2.description });  
+        this.setState({status:message2.status }); 
+        this.setState({pageId:message2.uid });   
       });
       this.setState({pageId:pageId });
   }
-
 
   componentWillUnmount() {
     this.props.firebase.messages().off();
@@ -61,25 +75,10 @@ class EditPage extends Component {
   onChangeStatus = event => {
     this.setState({ status: event.target.value });
   }
-
-  onCreateMessage = (event, authUser) => {
-
+  
+  onSaveEditText = (event) => {
     event.preventDefault();
-    this.props.firebase.messages().push({
-      title: this.state.title,
-      userId: authUser.uid,
-      description: this.state.description,
-      status: this.state.status,
-      createdAt: moment().format(),
-      updatedAt: moment().format(),
-    });
-
-    this.setState({ title: '', description: '', status: '', category: '' });
-    this.props.history.push('/pages');
-  };
-
-  onSaveEditText = () => {
-    this.props.onEditPage(
+    this.onEditPage(
       this.state.title,
       this.state.description,
       this.state.status,
@@ -88,13 +87,13 @@ class EditPage extends Component {
   };
 
   onEditPage = (title, description, status, pageId) => {
-
     this.props.firebase.message(pageId).set({
       title,
       description,
       status,
       updatedAt: moment().format(),
     });
+    this.props.onSetSetInfoMessage('Page updated successfully.');
     this.props.history.push('/pages');
   };
 
@@ -112,8 +111,8 @@ class EditPage extends Component {
     if(!this.props.authUser){
       return <CommonCheck/>
      }
-    const { users, messages } = this.props;
-    const { title, description, loading, pageId } = this.state;
+     const { title, description,status, pageId} = this.state;
+    
     const style = {
       'padding': '15px'
     }
@@ -122,6 +121,7 @@ class EditPage extends Component {
       return null
     } 
     return (
+
       <div className="container">
         <div className="row">
           <div style={style}>
@@ -131,12 +131,12 @@ class EditPage extends Component {
             <div className="form-group">
               <form
                 onSubmit={event =>
-                  this.onSaveEditText
+                  this.onSaveEditText(event)
                 }
               >
                 <input
                   type="text"
-                  value={message.title}
+                  value={title}
                   placeholder="Title"
                   className="form-control"
                   required
@@ -145,14 +145,14 @@ class EditPage extends Component {
                 <br></br>
 
                 <FroalaEditor
-                  model={message.description}
+                  model={description}
                   onModelChange={this.handleModelChange}
                 />
                 <br></br>
                 <div className="form-check">
                   <input type="radio" className="form-check-input" name="status"
                     value='draft'
-                    checked={message.status === 'draft'}
+                    checked={status === 'draft'}
                     onChange={this.onChangeStatus} />
                   <label className="form-check-label" htmlFor="exampleRadios1">
                     Draft
@@ -161,7 +161,7 @@ class EditPage extends Component {
                 <div className="form-check">
                   <input type="radio" className="form-check-input" name="status"
                     value='published'
-                    checked={message.status === 'published'}
+                    checked={status === 'published'}
                     onChange={this.onChangeStatus} />
                   <label className="form-check-label" htmlFor="exampleRadios1">
                     Published
@@ -202,8 +202,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onSetMessage: message =>
     dispatch({ type: 'MESSAGE_SET', message }),
-  onSetMessagesLimit: limit =>
-    dispatch({ type: 'MESSAGES_LIMIT_SET', limit }),
+  onSetSetInfoMessage: infoMessage =>
+    dispatch({ type: 'INFOMESSAGE_SET', infoMessage }),
+  
 });
 
 export default compose(

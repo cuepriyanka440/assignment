@@ -17,6 +17,7 @@
     "react-router": "^5.0.0",
     "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8",
+    "react-truncate": "^2.4.0",
     "recompose": "^0.30.0",
     "redux": "^4.0.1",
     "validatorjs": "^3.15.1"

@@ -3,8 +3,7 @@ import React, { Component } from 'react';
 import './App.css';
 import './bootstrap.min.css';
 import Home from './frontend/Home';
-import About from './frontend/About';
-import Contact from './frontend/Contact';
+import Content from './frontend/Content';
 import AdminLogin from './Admin/AdminLogin';
 import Pages from './Pages/Pages';
 import AddPage from './Pages/AddPage';
@@ -23,7 +22,8 @@ class App extends Component {
   onListenForPages = () => {
     this.props.firebase
       .messages()
-      .orderByChild('createdAt')
+      .orderByChild('status')
+      .equalTo('published')
       .on('value', snapshot => {
         this.props.onSetMenus(snapshot.val());
       });
@@ -31,7 +31,6 @@ class App extends Component {
 
   render() {
     const { users, menus } = this.props;
-    console.log(this.props.authUser);
     return (
       <div className="App">
          <Router>
@@ -40,7 +39,7 @@ class App extends Component {
           <nav className="navbar navbar-expand-lg navbar-light bg-light">
           <ul className="navbar-nav mr-auto">
           {this.props.authUser ? (
-            <button type="button" class="btn btn-secondary" onClick={this.props.firebase.doSignOut}>
+            <button type="button" className="btn btn-secondary" onClick={this.props.firebase.doSignOut}>
             Sign Out
           </button>
           ) : (
@@ -56,7 +55,7 @@ class App extends Component {
           { 
               menus.map((menu) => {
                 return (
-                <li><Link to={'/app/'+menu.title} className="nav-link"> {menu.title} </Link></li>
+                <li key={menu.uid}><Link to={'/app/'+menu.title} className="nav-link"> {menu.title} </Link></li>
                 
                 )})
             }
@@ -69,7 +68,8 @@ class App extends Component {
               <Route path='/pages' component={Pages} />
               <Route path='/addPage' component={AddPage} />
               <Route path='/editPage/:id' component={EditPage} />
-              <Route path='/app/:id' component={About} />
+              <Route path='/app/:id' component={Content} />
+              <Route path='/preview/:id' component={Content} />
               <Route component={Page404} />
           </Switch>
         </div>

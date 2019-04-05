@@ -5,7 +5,7 @@ import { compose } from 'recompose';
 import { connect } from 'react-redux';
 import parse from 'html-react-parser';
 
-class About extends Component {
+class Content extends Component {
 
   constructor(){
     super();
@@ -24,7 +24,6 @@ class About extends Component {
       .orderByChild('title')
       .equalTo(pageId)
       .on('value', snapshot => {
-        console.log(snapshot.val());
         this.props.onSetMessage(snapshot.val());
       });
   };
@@ -43,6 +42,13 @@ class About extends Component {
 
   render() {
     const { message } = this.props;
+    if(!message[0]) {
+      return null;
+    }
+    if(!this.props.authUser && message[0].status == 'draft' ) {
+      this.props.history.push('/login');
+    }
+
     return (
         <div>
           {message.map((msg) => {
@@ -72,12 +78,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: 'MESSAGE_SET', message }),
 });
 
-// const About = ({ match }) => (
-//   <div>
-//     <h3>ID: {match.params.id}</h3>
-//   </div>
-// )
-
 export default compose(
   withFirebase,
   withAuthentication,
@@ -85,4 +85,4 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
-)(About);
+)(Content);

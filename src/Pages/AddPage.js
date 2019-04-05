@@ -59,6 +59,7 @@ class Pages extends Component {
     });
 
     this.setState({ title: '', description: '', status: '', category: '' });
+    this.props.onSetSetInfoMessage('Page added successfully.');
     this.props.history.push('/pages');
   };
 
@@ -168,8 +169,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onSetMessage: message =>
     dispatch({ type: 'MESSAGE_SET', message }),
-  onSetMessagesLimit: limit =>
-    dispatch({ type: 'MESSAGES_LIMIT_SET', limit }),
+  onSetSetInfoMessage: infoMessage =>
+    dispatch({ type: 'INFOMESSAGE_SET', infoMessage }),
+  
 });
 
 export default compose(

@@ -19,12 +19,13 @@ import 'font-awesome/css/font-awesome.css';
 
 import FroalaEditor from 'react-froala-wysiwyg';
 import CommonCheck from '../CommonCheck';
+import parse from 'html-react-parser';
+import Truncate from 'react-truncate';
 
 import * as $ from 'jquery';
 window["$"] = $;
 window["jQuery"] = $;
 var moment = require('moment');
-
 
 class Pages extends Component {
   constructor(props) {
@@ -56,10 +57,8 @@ class Pages extends Component {
     this.props.firebase
       .messages()
       .orderByChild('createdAt')
-      // .limitToLast(this.props.limit)
       .on('value', snapshot => {
         this.props.onSetMessages(snapshot.val());
-
         this.setState({ loading: false });
       });
   };
@@ -85,12 +84,15 @@ class Pages extends Component {
     const style = {
       'padding':'15px'
     }
+    console.log(this.props);
     return (
       <div className="container">
+       <div className={this.props.infoMessage ? 'alert alert-success' : ''}>{this.props.infoMessage}</div>
       <div className="row">
       <div style={style}>
         <span><Link to={'/addPage'} className="btn btn-primary">Add Page</Link></span>
       </div>
+     
       <div className="col-md-12">
       
       {loading && <div>Loading ...</div>}
@@ -110,7 +112,11 @@ class Pages extends Component {
                 return (
                 <tr key={message.uid}>
                   <td>{message.title}</td>
-                  <td>{message.description}</td>
+                  <td>
+                  <Truncate lines={1} ellipsis={<span>...</span>}>
+                      {parse(message.description)}
+                  </Truncate>
+                  </td>
                   <td>{message.status}</td>
                   <td>{moment(message.updatedAt).format('MM/DD/YYYY')}</td>
                   <td> 
@@ -118,6 +124,7 @@ class Pages extends Component {
                     <a  onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
                       <i class="fa fa-trash" aria-hidden="true"></i>
                     </a>
+                    <Link to={'/preview/'+message.title} className="nav-link"> Preview </Link>
                   </td>
                 </tr> 
                 )})
@@ -142,7 +149,7 @@ const mapStateToProps = state => ({
       uid: key,
     }),
   ),
-  limit: state.messageState.limit,
+  infoMessage: state.messageState.infoMessage,
 });
 
 const mapDispatchToProps = dispatch => ({
