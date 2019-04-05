@@ -52,6 +52,7 @@ class App extends Component {
           ) : (
             ''
           )}
+          <li><Link to={'/'} className="nav-link"> Home </Link></li>
           { 
               menus.map((menu) => {
                 return (
