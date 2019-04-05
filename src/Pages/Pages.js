@@ -38,7 +38,8 @@ class Pages extends Component {
       loading: false,
       messages:null,
       sortOrder:'asc',
-      filterText:null
+      filterText:null,
+      paginationObj : null
     };
   }
 
@@ -48,6 +49,9 @@ class Pages extends Component {
     }
 
     this.onListenForPages();
+    if(!this.props.messages)
+      return null;
+    
   }
 
   onListenForPages = () => {
@@ -57,6 +61,19 @@ class Pages extends Component {
       .on('value', snapshot => {
         this.props.onSetMessages(snapshot.val());
         this.setState({ loading: false });
+
+        let messag = snapshot.val();
+        let msg= Object.keys(messag || {}).map(
+          key => ({
+            ...messag[key],
+            uid: key,
+          }),
+        )
+        
+        let msg1= this.getPaginatedItems(msg, 1, 3);
+        this.props.onSetMessages(msg1.data);
+        this.setState({paginationObj:msg1 });
+        
       });
   };
 
@@ -111,6 +128,11 @@ class Pages extends Component {
     }
     const { users, messages } = this.props;
     const { loading,filterText } = this.state;
+    const paginationObj = this.state.paginationObj;
+    if(!paginationObj){
+      return null;
+    }
+    
     const style = {
       'padding':'15px'
     }
@@ -124,7 +146,7 @@ class Pages extends Component {
       <div className="row">
       <div style={style}>
         <span><Link to={'/addPage'} className="btn btn-primary">Add Page</Link></span>
-        <input type="text" style={marginStyle} onChange={this.onChangeFilter} value={filterText}></input>
+        <input type="text" style={marginStyle} placeholder="Filter by title" onChange={this.onChangeFilter} value={filterText}></input>
         <button onClick={this.onSeach}>Search</button>
       </div>
      
