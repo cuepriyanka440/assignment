@@ -69,7 +69,7 @@ class Pages extends Component {
             uid: key,
           }),
         )
-        
+        this.setState({messages:msg });
         let msg1= this.getPaginatedItems(msg, 1, 3);
         this.props.onSetMessages(msg1.data);
         this.setState({paginationObj:msg1 });
@@ -109,6 +109,14 @@ class Pages extends Component {
       data: pagedItems
     };
   }
+  
+  onNextPage(page) {
+	  console.log(page);
+	let msg1 = this.getPaginatedItems(this.state.messages, page, 3);
+	console.log(msg1);
+    this.props.onSetMessages(msg1.data);
+    this.setState({paginationObj:msg1 });
+  }
   onChangeFilter = (event) => {
     this.setState({filterText:event.target.value});
   }
@@ -132,7 +140,18 @@ class Pages extends Component {
     if(!paginationObj){
       return null;
     }
-    
+    const items = []
+	let selected='';
+	var j=1;
+	 for (var i = 1; i <= paginationObj.total_pages; i++) {
+		selected = 'page-item';
+		if(paginationObj.page == i) {
+			selected = 'page-item active';
+		} 
+		const s=i;
+		items.push(<li className={selected} key={i}><a className="page-link" data={i} onClick={(i) => this.onNextPage(s)}>{i}</a></li>)
+		
+	}
     const style = {
       'padding':'15px'
     }
@@ -178,9 +197,9 @@ class Pages extends Component {
                   <td>{message.status}</td>
                   <td>{moment(message.updatedAt).format('MM/DD/YYYY')}</td>
                   <td> 
-                    <Link to={'editPage/' + message.title} className="nav-link"><i class="fa fa-edit" aria-hidden="true"></i></Link>
+                    <Link to={'editPage/' + message.title} className="nav-link"><i className="fa fa-edit" aria-hidden="true"></i></Link>
                     <a onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
-                      <i class="fa fa-trash" aria-hidden="true"></i>
+                      <i className="fa fa-trash" aria-hidden="true"></i>
                     </a>
                     <Link to={'/preview/'+message.title} className="nav-link"> Preview </Link>
                   </td>
@@ -189,7 +208,14 @@ class Pages extends Component {
             }
             </tbody>
          </table>
-            
+            <div>
+			
+			<nav aria-label="Page navigation example">
+				  <ul className="pagination justify-content-center">
+				  {items}
+				  </ul>
+				</nav>
+			</div>
         {!messages && <div>There are no pages ...</div>}
       </div>
       </div>
