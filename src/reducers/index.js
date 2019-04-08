@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux';
 import sessionReducer from './session';
-import messageReducer from './message';
+import pageReducer from './page';
 
 const rootReducer = combineReducers({
   sessionState: sessionReducer,
-  messageState: messageReducer,
+  pageState: pageReducer,
 });
 
 export default rootReducer;

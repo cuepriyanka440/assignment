@@ -4,8 +4,7 @@ import { compose } from 'recompose';
 
 import { withFirebase } from '../Firebase';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { withAuthorization, withEmailVerification } from '../Session';
-import { BrowserRouter as Router, Switch, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -44,7 +43,7 @@ class EditPage extends Component {
       .orderByChild('title')
       .equalTo(pageId)
       .on('value', snapshot => {
-        this.props.onSetMessage(snapshot.val());
+        this.props.onSetPage(snapshot.val());
         let message = snapshot.val();
         let message1 =  Object.keys(message || {}).map(
           key => ({
@@ -111,12 +110,12 @@ class EditPage extends Component {
     if(!this.props.authUser){
       return <CommonCheck/>
      }
-     const { title, description,status, pageId} = this.state;
+     const { title, description,status} = this.state;
     
     const style = {
       'padding': '15px'
     }
-    let message = this.props.message[0];
+    let message = this.props.page[0];
     if(!message) {
       return null
     } 
@@ -183,16 +182,15 @@ class EditPage extends Component {
 const mapStateToProps = state => ({
 
   authUser: state.sessionState.authUser,
-  messages: Object.keys(state.messageState.messages || {}).map(
+  pages: Object.keys(state.pageState.pages || {}).map(
     key => ({
-      ...state.messageState.messages[key],
+      ...state.pageState.pages[key],
       uid: key,
     }),
   ),
-  limit: state.messageState.limit,
-  message: Object.keys(state.messageState.message || {}).map(
+  page: Object.keys(state.pageState.page || {}).map(
     key => ({
-      ...state.messageState.message[key],
+      ...state.pageState.page[key],
       uid: key,
     }),
   ),
@@ -200,8 +198,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetMessage: message =>
-    dispatch({ type: 'MESSAGE_SET', message }),
+  onSetPage: page =>
+    dispatch({ type: 'PAGE_SET', page }),
   onSetSetInfoMessage: infoMessage =>
     dispatch({ type: 'INFOMESSAGE_SET', infoMessage }),
   

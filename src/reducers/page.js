@@ -1,17 +1,17 @@
 const INITIAL_STATE = {
-  messages: null,
-  message:null,
+  pages: null,
+  page:null,
   menus:null,
   infoMessage:null
 };
 
-const applySetMessages = (state, action) => ({
+const applySetPages = (state, action) => ({
   ...state,
-  messages: action.messages,
+  pages: action.pages,
 });
-const applySetMessage = (state, action) => ({
+const applySetPage = (state, action) => ({
   ...state,
-  message: action.message,
+  page: action.page,
 });
 
 const applySetMenus = (state, action) => ({
@@ -27,11 +27,11 @@ const applySetInfoMessage = (state, action) => ({
 
 function messageReducer(state = INITIAL_STATE, action) {
   switch (action.type) {
-    case 'MESSAGES_SET': {
-      return applySetMessages(state, action);
+    case 'PAGES_SET': {
+      return applySetPages(state, action);
     }
-    case 'MESSAGE_SET': {
-      return applySetMessage(state, action);
+    case 'PAGE_SET': {
+      return applySetPage(state, action);
     }
     case 'MENUS_SET': {
       return applySetMenus(state, action);

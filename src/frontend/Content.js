@@ -30,7 +30,7 @@ class Content extends Component {
 
   componentDidUpdate(props) {
     let PageId = this.props.match.params.id;
-    if(PageId != this.state.pageId ) {
+    if(PageId !== this.state.pageId ) {
       this.setState({pageId:PageId});
       this.onListenForPages(PageId);
     }
@@ -45,7 +45,7 @@ class Content extends Component {
     if(!message[0]) {
       return null;
     }
-    if(!this.props.authUser && message[0].status == 'draft' ) {
+    if(!this.props.authUser && message[0].status === 'draft' ) {
       this.props.history.push('/login');
     }
 
@@ -63,11 +63,10 @@ class Content extends Component {
 }
 
 const mapStateToProps = state => ({
-  
   authUser: state.sessionState.authUser,
-  message: Object.keys(state.messageState.message || {}).map(
+  message: Object.keys(state.pageState.message || {}).map(
     key => ({
-      ...state.messageState.message[key],
+      ...state.pageState.message[key],
       uid: key,
     }),
   ),

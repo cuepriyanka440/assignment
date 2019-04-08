@@ -4,8 +4,7 @@ import { compose } from 'recompose';
 
 import { withFirebase } from '../Firebase';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { withAuthorization, withEmailVerification } from '../Session';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -91,7 +90,6 @@ class Pages extends Component {
     if(!this.props.authUser){
       return <CommonCheck/>
     }
-    const { users, messages } = this.props;
     const style = {
       'padding': '15px'
     }
@@ -156,19 +154,18 @@ class Pages extends Component {
 const mapStateToProps = state => ({
 
   authUser: state.sessionState.authUser,
-  messages: Object.keys(state.messageState.messages || {}).map(
+  pages: Object.keys(state.pageState.pages || {}).map(
     key => ({
-      ...state.messageState.messages[key],
+      ...state.pageState.pages[key],
       uid: key,
     }),
   ),
-  limit: state.messageState.limit,
-  message: state.messageState.message
+  page: state.pageState.page
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetMessage: message =>
-    dispatch({ type: 'MESSAGE_SET', message }),
+  onSetPage: page =>
+    dispatch({ type: 'PAGE_SET', page }),
   onSetSetInfoMessage: infoMessage =>
     dispatch({ type: 'INFOMESSAGE_SET', infoMessage }),
   

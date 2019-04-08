@@ -30,7 +30,7 @@ class App extends Component {
   };
 
   render() {
-    const { users, menus } = this.props;
+    const { menus } = this.props;
     return (
       <div className="App">
          <Router>
@@ -89,9 +89,9 @@ const Page404 = ({ location }) => (
 const mapStateToProps = state => ({
   
   authUser: state.sessionState.authUser,
-  menus: Object.keys(state.messageState.menus || {}).map(
+  menus: Object.keys(state.pageState.menus || {}).map(
     key => ({
-      ...state.messageState.menus[key],
+      ...state.pageState.menus[key],
       uid: key,
     }),
   ),

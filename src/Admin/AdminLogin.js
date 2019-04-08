@@ -39,7 +39,7 @@ class AdminLogin extends Component {
   };
 
   render() {
-    const { email, password, error } = this.state;
+    const { error } = this.state;
     return (
         <div  className="wrapper">
         <div id="formContent">

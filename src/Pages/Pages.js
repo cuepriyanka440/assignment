@@ -5,7 +5,7 @@ import { compose } from 'recompose';
 import { withFirebase } from '../Firebase';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { withAuthentication } from '../Session';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -17,15 +17,12 @@ import 'froala-editor/css/froala_editor.pkgd.min.css';
 // Require Font Awesome.
 import 'font-awesome/css/font-awesome.css';
 
-import FroalaEditor from 'react-froala-wysiwyg';
 import CommonCheck from '../CommonCheck';
 import parse from 'html-react-parser';
 import Truncate from 'react-truncate';
 
 import _ from 'lodash';
-import * as $ from 'jquery';
-window["$"] = $;
-window["jQuery"] = $;
+
 var moment = require('moment');
 
 class Pages extends Component {
@@ -36,7 +33,7 @@ class Pages extends Component {
     this.sortby = this.sortby.bind(this);
     this.state = {
       loading: false,
-      messages:null,
+      pages:null,
       sortOrder:'asc',
       filterText:null,
       paginationObj : null
@@ -44,12 +41,12 @@ class Pages extends Component {
   }
 
   componentDidMount() {
-    if (!this.props.messages.length) {
+    if (!this.props.pages.length) {
       this.setState({ loading: true });
     }
 
     this.onListenForPages();
-    if(!this.props.messages)
+    if(!this.props.pages)
       return null;
     
   }
@@ -59,7 +56,7 @@ class Pages extends Component {
       .messages()
       .orderByChild('createdAt')
       .on('value', snapshot => {
-        this.props.onSetMessages(snapshot.val());
+        this.props.onSetPages(snapshot.val());
         this.setState({ loading: false });
 
         let messag = snapshot.val();
@@ -69,9 +66,9 @@ class Pages extends Component {
             uid: key,
           }),
         )
-        this.setState({messages:msg });
+        this.setState({pages:msg });
         let msg1= this.getPaginatedItems(msg, 1, 3);
-        this.props.onSetMessages(msg1.data);
+        this.props.onSetPages(msg1.data);
         this.setState({paginationObj:msg1 });
         
       });
@@ -87,9 +84,9 @@ class Pages extends Component {
 
   sortby(sortKey){
     
-    let sortedObject = _.orderBy(this.props.messages, sortKey, this.state.sortOrder)
-    this.props.onSetMessages(sortedObject);
-    if( this.state.sortOrder == 'asc') {
+    let sortedObject = _.orderBy(this.props.pages, sortKey, this.state.sortOrder)
+    this.props.onSetPages(sortedObject);
+    if( this.state.sortOrder === 'asc') {
       this.setState({ sortOrder: 'desc' });
     } else {
       this.setState({ sortOrder: 'asc' });
@@ -111,21 +108,22 @@ class Pages extends Component {
   }
   
   onNextPage(page) {
-	  console.log(page);
-	let msg1 = this.getPaginatedItems(this.state.messages, page, 3);
-	console.log(msg1);
-    this.props.onSetMessages(msg1.data);
+	  
+	  let msg1 = this.getPaginatedItems(this.state.pages, page, 3);
+	
+    this.props.onSetPages(msg1.data);
     this.setState({paginationObj:msg1 });
   }
   onChangeFilter = (event) => {
     this.setState({filterText:event.target.value});
   }
   onSeach = () => {
-    this.setState({messages:this.props.messages });
-    if(  this.state.filterText== '') {
-      var sortedObject = this.state.messages;
+    this.setState({pages:this.props.pages });
+    var sortedObject;
+    if(  this.state.filterText === '') {
+      sortedObject = this.state.messages;
     } else {
-      var sortedObject = _.filter(this.props.messages, { 'title': this.state.filterText });
+      sortedObject = _.filter(this.props.pages, { 'title': this.state.filterText });
     }
     this.props.onSetMessages(sortedObject);
   }
@@ -134,22 +132,23 @@ class Pages extends Component {
     if(!this.props.authUser){
      return <CommonCheck/>
     }
-    const { users, messages } = this.props;
+    const { pages } = this.props;
     const { loading,filterText } = this.state;
     const paginationObj = this.state.paginationObj;
     if(!paginationObj){
       return null;
     }
     const items = []
-	let selected='';
-	var j=1;
+	  let selected='';
+	
 	 for (var i = 1; i <= paginationObj.total_pages; i++) {
 		selected = 'page-item';
-		if(paginationObj.page == i) {
+		if(paginationObj.page === i) {
 			selected = 'page-item active';
 		} 
-		const s=i;
-		items.push(<li className={selected} key={i}><a className="page-link" data={i} onClick={(i) => this.onNextPage(s)}>{i}</a></li>)
+    const s=i;
+    // eslint-disable-next-line 
+		items.push(<li className={selected} key={i}><a className="page-link" onClick={(i) => this.onNextPage(s)}>{i}</a></li>)
 		
 	}
     const style = {
@@ -185,23 +184,24 @@ class Pages extends Component {
             </thead>
             <tbody>
             { 
-              messages.map((message) => {
+              pages.map((page1) => {
+               
                 return (
-                <tr key={message.uid}>
-                  <td>{message.title}</td>
+                <tr key={page1.title}>
+                  <td>{page1.title}</td>
                   <td>
                   <Truncate lines={1} ellipsis={<span>...</span>}>
-                      {parse(message.description)}
+                      {parse(page1.description)}
                   </Truncate>
                   </td>
-                  <td>{message.status}</td>
-                  <td>{moment(message.updatedAt).format('MM/DD/YYYY')}</td>
+                  <td>{page1.status}</td>
+                  <td>{moment(page1.updatedAt).format('MM/DD/YYYY')}</td>
                   <td> 
-                    <Link to={'editPage/' + message.title} className="nav-link"><i className="fa fa-edit" aria-hidden="true"></i></Link>
-                    <a onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(message.uid) } }>
+                    <Link to={'editPage/' + page1.title} className="nav-link"><i className="fa fa-edit" aria-hidden="true"></i></Link>
+                    <a onClick={(e) => { if (window.confirm('Are you sure you wish to delete this item?')) this.onRemovePage(page1.title) } }>
                       <i className="fa fa-trash" aria-hidden="true"></i>
                     </a>
-                    <Link to={'/preview/'+message.title} className="nav-link"> Preview </Link>
+                    <Link to={'/preview/'+page1.title} className="nav-link"> Preview </Link>
                   </td>
                 </tr> 
                 )})
@@ -216,7 +216,7 @@ class Pages extends Component {
 				  </ul>
 				</nav>
 			</div>
-        {!messages && <div>There are no pages ...</div>}
+        {!pages && <div>There are no pages ...</div>}
       </div>
       </div>
       </div>
@@ -227,20 +227,19 @@ class Pages extends Component {
 const mapStateToProps = state => ({
   
   authUser: state.sessionState.authUser,
-  messages: Object.keys(state.messageState.messages || {}).map(
+  
+  pages: Object.keys(state.pageState.pages || {}).map(
     key => ({
-      ...state.messageState.messages[key],
+      ...state.pageState.pages[key],
       uid: key,
     }),
   ),
-  infoMessage: state.messageState.infoMessage,
+  infoMessage: state.pageState.infoMessage,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetMessages: messages =>
-    dispatch({ type: 'MESSAGES_SET', messages }),
-  onSetMessagesLimit: limit =>
-    dispatch({ type: 'MESSAGES_LIMIT_SET', limit }),
+  onSetPages: pages =>
+    dispatch({ type: 'PAGES_SET', pages }),
 });
 
 export default compose(
